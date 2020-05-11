@@ -1,5 +1,6 @@
-import { Component, ViewChild, ElementRef } from '@angular/core';
+import { Component, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { ToastController, LoadingController, Platform } from '@ionic/angular';
+import { BarcodeScanner } from '@ionic-native/barcode-scanner/ngx';
 import jsQR from 'jsqr';
 
 @Component({
@@ -7,7 +8,7 @@ import jsQR from 'jsqr';
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
 })
-export class HomePage {
+export class HomePage implements AfterViewInit {
   scanActive = false;
   scanResult = null;
   @ViewChild('video', { static: false }) video: ElementRef;
@@ -20,15 +21,19 @@ export class HomePage {
 
   loading: HTMLIonLoadingElement;
 
-  constructor(private toastCtrl: ToastController, private loadingCtrl: LoadingController,
-    private plt: Platform) {
-      const isInStandaloneMode = () =>
+  constructor(
+    private toastCtrl: ToastController,
+    private loadingCtrl: LoadingController,
+    private plt: Platform,
+    private barcodeScanner: BarcodeScanner,
+  ) {
+    const isInStandaloneMode = () =>
       'standalone' in window.navigator && window.navigator['standalone'];
     if (this.plt.is('ios') && isInStandaloneMode()) {
       console.log('I am a an iOS PWA!');
       // E.g. hide the scan functionality!
     }
-    }
+  }
 
   ngAfterViewInit() {
     this.videoElement = this.video.nativeElement;
@@ -50,10 +55,10 @@ export class HomePage {
         0,
         0,
         this.canvasElement.width,
-        this.canvasElement.height
+        this.canvasElement.height,
       );
       const code = jsQR(imageData.data, imageData.width, imageData.height, {
-        inversionAttempts: 'dontInvert'
+        inversionAttempts: 'dontInvert',
       });
 
       if (code) {
@@ -67,7 +72,7 @@ export class HomePage {
 
   async startScan() {
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment'}
+      video: { facingMode: 'environment' },
     });
     this.videoElement.srcObject = stream;
     this.videoElement.setAttribute('playsinline', true);
@@ -96,25 +101,25 @@ export class HomePage {
         0,
         0,
         this.canvasElement.width,
-        this.canvasElement.height
+        this.canvasElement.height,
       );
 
       const imageData = this.canvasContext.getImageData(
         0,
         0,
         this.canvasElement.width,
-        this.canvasElement.height
+        this.canvasElement.height,
       );
 
       const code = jsQR(imageData.data, imageData.width, imageData.height, {
-        inversionAttempts: 'dontInvert'
+        inversionAttempts: 'dontInvert',
       });
       console.log('code: ', code);
 
       if (code) {
         this.scanActive = false;
         this.scanResult = code.data;
-// Esto te da la opcion de abrir lo que el scanner a leido
+        // Esto te da la opcion de abrir lo que el scanner a leido
         // this.showQrToast();
       } else {
         if (this.scanActive) {
@@ -135,13 +140,12 @@ export class HomePage {
     //   (track)=>{
     //   track.stop();
     //   });
-    
   }
 
   reset() {
     this.scanResult = null;
   }
-  // esta parte te puede redirigir a abrir un link 
+  // esta parte te puede redirigir a abrir un link
   async showQrToast() {
     const toast = await this.toastCtrl.create({
       message: 'Open $(this.ScanResult)?',
@@ -151,10 +155,22 @@ export class HomePage {
           text: 'Open',
           handler: () => {
             window.open(this.scanResult, '_system', 'location=yes');
-          }
-        }
-      ]
+          },
+        },
+      ],
     });
     toast.present();
+  }
+
+  openCameraForQR() {
+    this.barcodeScanner
+      .scan()
+      .then((barcodeData) => {
+        console.log('Barcode data ->', barcodeData);
+        this.scanResult = barcodeData.text;
+      })
+      .catch((err) => {
+        console.log('Error', err);
+      });
   }
 }
