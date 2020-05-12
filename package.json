@@ -25,6 +25,7 @@
     "@ionic-native/status-bar": "^5.0.0",
     "@ionic/angular": "^5.0.0",
     "cordova-android": "8.1.0",
+    "cordova-browser": "^6.0.0",
     "core-js": "^2.5.4",
     "jsqr": "^1.3.1",
     "phonegap-plugin-barcodescanner": "^8.1.0",
@@ -76,7 +77,8 @@
       "phonegap-plugin-barcodescanner": {}
     },
     "platforms": [
-      "android"
+      "android",
+      "browser"
     ]
   }
 }

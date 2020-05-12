@@ -71,17 +71,22 @@ export class HomePage implements AfterViewInit {
   }
 
   async startScan() {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment' },
-    });
-    this.videoElement.srcObject = stream;
-    this.videoElement.setAttribute('playsinline', true);
-    this.videoElement.play();
-
-    this.loading = await this.loadingCtrl.create({});
-    await this.loading.present();
-
-    requestAnimationFrame(this.scan.bind(this));
+    navigator.mediaDevices
+      .getUserMedia({
+        audio: false,
+        video: {
+          facingMode: 'environment'
+        },
+      })
+      .then(async (stream) => {
+        this.videoElement.srcObject = stream;
+        this.videoElement.setAttribute('playsinline', true);
+        this.videoElement.play();
+        this.loading = await this.loadingCtrl.create({});
+        await this.loading.present();
+        requestAnimationFrame(this.scan.bind(this));
+      })
+      .catch(console.warn);
   }
 
   async scan() {
